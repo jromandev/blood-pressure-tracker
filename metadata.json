@@ -1,0 +1,7 @@
+{
+  "name": "HearthPulse BP Tracker",
+  "description": "A modern, mobile-first blood pressure tracking application with AI-powered insights, OCR scanning, and beautiful data visualizations.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

@@ -1,7 +1,8 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { BPLog } from '../types';
 import { scanBPDevice } from '../services/geminiService';
+import { useToast } from './Toast';
 
 interface LogModalProps {
   isOpen: boolean;
@@ -13,10 +14,21 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
   const [systolic, setSystolic] = useState<string>('120');
   const [diastolic, setDiastolic] = useState<string>('80');
   const [pulse, setPulse] = useState<string>('72');
-  const [timestamp, setTimestamp] = useState<string>(new Date().toISOString().slice(0, 16));
+  const now = new Date();
+  const [date, setDate] = useState<string>(now.toISOString().slice(0, 10));
+  const [time, setTime] = useState<string>(now.toTimeString().slice(0, 5));
   const [note, setNote] = useState<string>('');
   const [isScanning, setIsScanning] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { showToast } = useToast();
+
+  // Reset saving state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setIsSaving(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -24,21 +36,50 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
     setSystolic('120');
     setDiastolic('80');
     setPulse('72');
-    setTimestamp(new Date().toISOString().slice(0, 16));
+    const resetNow = new Date();
+    setDate(resetNow.toISOString().slice(0, 10));
+    setTime(resetNow.toTimeString().slice(0, 5));
     setNote('');
+    setIsSaving(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave({
-      systolic: parseInt(systolic),
-      diastolic: parseInt(diastolic),
-      pulse: parseInt(pulse),
-      note,
-      timestamp: new Date(timestamp).toISOString()
-    });
-    resetForm();
-    onClose();
+  const handleSubmit = () => {
+    console.log('🔵 handleSubmit called');
+    console.log('Data:', { systolic, diastolic, pulse, date, time, note });
+    
+    if (isSaving) {
+      console.log('⚠️ Already saving, ignoring click');
+      return;
+    }
+    
+    setIsSaving(true);
+    
+    try {
+      const timestamp = new Date(`${date}T${time}`).toISOString();
+      console.log('✅ Timestamp created:', timestamp);
+      
+      onSave({
+        systolic: parseInt(systolic),
+        diastolic: parseInt(diastolic),
+        pulse: parseInt(pulse),
+        note,
+        timestamp
+      });
+      
+      console.log('✅ onSave called');
+      resetForm();
+      console.log('✅ Form reset');
+      
+      // Give a tiny delay for state to update
+      setTimeout(() => {
+        console.log('✅ Calling onClose');
+        onClose();
+      }, 100);
+    } catch (error) {
+      console.error('❌ Error saving log:', error);
+      showToast('Error saving reading. Please try again.', 'error');
+      setIsSaving(false);
+    }
   };
 
   const handleCameraClick = () => {
@@ -58,8 +99,9 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
         setSystolic(result.systolic.toString());
         setDiastolic(result.diastolic.toString());
         setPulse(result.pulse.toString());
+        showToast('Successfully scanned BP monitor!', 'success');
       } else {
-        alert("Couldn't read values from image. Please enter manually.");
+        showToast("Couldn't read values from image. Please enter manually.", 'warning');
       }
       setIsScanning(false);
     };
@@ -67,14 +109,27 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 shadow-2xl animate-in slide-in-from-bottom duration-300">
+    <div 
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
+      <div 
+        className="bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-[2.5rem] p-8 shadow-2xl animate-in slide-in-from-bottom duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Add Reading</h2>
+            <h2 id="modal-title" className="text-2xl font-black text-slate-900 tracking-tight">Add Reading</h2>
             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Manual entry or Scan</p>
           </div>
-          <button onClick={onClose} className="p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 transition-colors">
+          <button 
+            onClick={onClose} 
+            className="p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl text-slate-400 transition-colors"
+            aria-label="Close dialog"
+          >
              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -85,7 +140,8 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
           <button 
             onClick={handleCameraClick}
             disabled={isScanning}
-            className={`w-full py-4 px-6 rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/50 flex items-center justify-center gap-3 group transition-all hover:bg-indigo-50 hover:border-indigo-300 ${isScanning ? 'opacity-50 cursor-wait' : ''}`}
+            className={`w-full py-4 px-6 rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/50 flex items-center justify-center gap-3 group transition-all hover:bg-indigo-50 hover:border-indigo-300 focus:ring-4 focus:ring-indigo-200 ${isScanning ? 'opacity-50 cursor-wait' : ''}`}
+            aria-label="Scan blood pressure monitor screen with camera"
           >
             {isScanning ? (
               <span className="flex items-center gap-3 font-bold text-indigo-600">
@@ -113,10 +169,11 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
             className="hidden" 
             ref={fileInputRef}
             onChange={handleFileChange}
+            aria-label="Upload blood pressure monitor image"
           />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Systolic</label>
@@ -148,26 +205,43 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Pulse Rate</label>
+              <label htmlFor="pulse" className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Pulse Rate</label>
               <input
+                id="pulse"
                 type="number"
                 required
                 value={pulse}
                 onChange={(e) => setPulse(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-lg font-bold text-slate-800 focus:ring-4 focus:ring-indigo-100 focus:bg-white outline-none transition-all"
                 placeholder="72"
+                aria-label="Enter pulse rate"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Date & Time</label>
+              <label htmlFor="time" className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Time</label>
               <input
-                type="datetime-local"
+                id="time"
+                type="time"
                 required
-                value={timestamp}
-                onChange={(e) => setTimestamp(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-3 py-4 text-xs font-bold text-slate-800 focus:ring-4 focus:ring-indigo-100 focus:bg-white outline-none transition-all"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-lg font-bold text-slate-800 focus:ring-4 focus:ring-indigo-100 focus:bg-white outline-none transition-all"
+                aria-label="Enter time"
               />
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="date" className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Date</label>
+            <input
+              id="date"
+              type="date"
+              required
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-lg font-bold text-slate-800 focus:ring-4 focus:ring-indigo-100 focus:bg-white outline-none transition-all"
+              aria-label="Enter date"
+            />
           </div>
 
           <div className="space-y-1.5">
@@ -181,12 +255,15 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
           </div>
 
           <button
-            type="submit"
-            className="w-full bg-slate-900 text-white font-black py-5 rounded-[2rem] shadow-xl shadow-slate-200 active:scale-95 transition-all uppercase tracking-widest text-sm"
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSaving}
+            className="w-full bg-slate-900 text-white font-black py-5 rounded-[2rem] shadow-xl shadow-slate-200 active:scale-95 transition-all uppercase tracking-widest text-sm focus:ring-4 focus:ring-slate-300 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Save blood pressure reading"
           >
-            Save Record
+            {isSaving ? 'Saving...' : 'Save Record'}
           </button>
-        </form>
+        </div>
       </div>
     </div>
   );

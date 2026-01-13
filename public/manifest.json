@@ -1,0 +1,13 @@
+{
+  "name": "HearthPulse BP Tracker",
+  "short_name": "HearthPulse",
+  "description": "Track your blood pressure and heart health with AI-powered insights",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "orientation": "portrait",
+  "icons": [],
+  "categories": ["health", "medical", "lifestyle"],
+  "screenshots": []
+}

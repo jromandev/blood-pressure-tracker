@@ -11,6 +11,7 @@ export interface UserProfile {
   age: string;
   gender: string;
   weight: string;
+  height: string;
   conditions: string;
 }
 

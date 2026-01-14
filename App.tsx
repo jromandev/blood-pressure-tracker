@@ -5,12 +5,11 @@ import { ToastProvider } from './components/Toast';
 import { BPLog } from './types';
 import Dashboard from './components/tabs/Dashboard';
 import AIAnalysis from './components/tabs/AIAnalysis';
-import StatusRadar from './components/tabs/StatusRadar';
 import Settings from './components/tabs/Settings';
 import LogModal from './components/LogModal';
 
 const AppContent: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'ai' | 'status' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'ai' | 'settings'>('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { addLog } = useBPContext();
 
@@ -33,8 +32,6 @@ const AppContent: React.FC = () => {
         return <Dashboard />;
       case 'ai':
         return <AIAnalysis />;
-      case 'status':
-        return <StatusRadar />;
       case 'settings':
         return <Settings />;
       default:
@@ -45,25 +42,27 @@ const AppContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 pb-32">
       {/* App Header */}
-      <header className="bg-white px-6 pt-8 pb-6 sticky top-0 z-30 shadow-sm border-b border-slate-100">
+      <header className="fixed top-0 inset-x-0 bg-white px-6 pt-14 pb-6 z-30 shadow-sm border-b border-slate-100">
         <div className="max-w-xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">Hearth<span className="text-red-500">Pulse</span></h1>
             <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">{activeTab.replace(/([A-Z])/g, ' $1')}</p>
           </div>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-slate-200 active:scale-90 transition-transform"
-            aria-label="Add new blood pressure reading"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
+          {activeTab === 'dashboard' && (
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-slate-200 active:scale-90 transition-transform"
+              aria-label="Add new blood pressure reading"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          )}
         </div>
       </header>
 
-      <main className="max-w-xl mx-auto px-6 py-8">
+      <main className="max-w-xl mx-auto px-6 py-8 pt-32">
         {renderTab()}
       </main>
 
@@ -81,12 +80,6 @@ const AppContent: React.FC = () => {
             onClick={() => setActiveTab('ai')} 
             icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>}
             label="Analysis"
-          />
-          <TabButton 
-            active={activeTab === 'status'} 
-            onClick={() => setActiveTab('status')} 
-            icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>}
-            label="Radar"
           />
           <TabButton 
             active={activeTab === 'settings'} 
@@ -133,7 +126,7 @@ const TabButton: React.FC<TabButtonProps> = ({ active, onClick, icon, label }) =
       <div className={`rounded-2xl ${active ? 'bg-indigo-50' : 'bg-transparent'}`}>
         {icon}
       </div>
-      <span className={`text-[10px] font-black uppercase tracking-[0.1em] ${active ? 'opacity-100' : 'opacity-0'}`}>{label}</span>
+      <span className={`text-[10px] font-black uppercase tracking-widest ${active ? 'opacity-100' : 'opacity-0'}`}>{label}</span>
     </button>
   );
 };

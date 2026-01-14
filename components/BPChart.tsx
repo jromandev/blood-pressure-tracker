@@ -11,14 +11,26 @@ interface BPChartProps {
 }
 
 const BPChart: React.FC<BPChartProps> = ({ logs }) => {
-  // Sort logs ASCENDING (past to present) for the chart timeline
-  const chartData = [...logs]
-    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-    .map(log => ({
-      time: new Date(log.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-      systolic: log.systolic,
-      diastolic: log.diastolic,
-      pulse: log.pulse
+  // Group logs by date and average values for each day
+  const groupedByDate = logs.reduce((acc, log) => {
+    const dateKey = new Date(log.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    if (!acc[dateKey]) {
+      acc[dateKey] = { systolic: [], diastolic: [], pulse: [], timestamp: log.timestamp };
+    }
+    acc[dateKey].systolic.push(log.systolic);
+    acc[dateKey].diastolic.push(log.diastolic);
+    acc[dateKey].pulse.push(log.pulse);
+    return acc;
+  }, {} as Record<string, { systolic: number[], diastolic: number[], pulse: number[], timestamp: string }>);
+
+  // Sort by timestamp and calculate averages
+  const chartData = Object.entries(groupedByDate)
+    .sort((a, b) => new Date(a[1].timestamp).getTime() - new Date(b[1].timestamp).getTime())
+    .map(([date, values]) => ({
+      time: date,
+      systolic: Math.round(values.systolic.reduce((sum, val) => sum + val, 0) / values.systolic.length),
+      diastolic: Math.round(values.diastolic.reduce((sum, val) => sum + val, 0) / values.diastolic.length),
+      pulse: Math.round(values.pulse.reduce((sum, val) => sum + val, 0) / values.pulse.length)
     }));
 
   if (chartData.length === 0) {

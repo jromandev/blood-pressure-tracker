@@ -18,7 +18,7 @@ const StatusRadar: React.FC = () => {
         <CategoryChart latestLog={latestLog} />
         
         {latestLog && (
-          <div className="mt-8 p-6 bg-slate-50 rounded-[2rem] flex items-center justify-between border border-slate-100">
+          <div className="mt-8 p-6 bg-slate-50 rounded-4xl flex items-center justify-between border border-slate-100">
             <div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Current Zone</p>
               <p className="text-xl font-black text-slate-900 tracking-tight">{getBPCategory(latestLog.systolic, latestLog.diastolic)}</p>

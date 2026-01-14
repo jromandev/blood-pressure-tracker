@@ -13,6 +13,7 @@ export interface UserProfile {
   weight: string;
   height: string;
   conditions: string;
+  geminiApiKey: string;
 }
 
 export interface BPLog {

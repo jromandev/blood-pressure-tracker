@@ -2,9 +2,15 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BPLog, InsightData, UserProfile } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-
 export const getHealthInsights = async (logs: BPLog[], profile: UserProfile): Promise<InsightData> => {
+  if (!profile.geminiApiKey || !profile.geminiApiKey.trim()) {
+    return {
+      summary: "Please set your Gemini API key in the Profile tab to generate AI insights.",
+      recommendations: ["Go to Profile tab", "Add your Gemini API Key", "Return here to generate insights"],
+      trend: "insufficient"
+    };
+  }
+
   if (logs.length === 0) {
     return {
       summary: "No logs available yet. Start tracking your blood pressure to receive personalized insights.",
@@ -13,11 +19,18 @@ export const getHealthInsights = async (logs: BPLog[], profile: UserProfile): Pr
     };
   }
 
+  const ai = new GoogleGenAI({ apiKey: profile.geminiApiKey });
+
   const logData = logs.slice(0, 15).map(l => 
     `Date: ${new Date(l.timestamp).toLocaleString()}, Sys: ${l.systolic}, Dia: ${l.diastolic}, Pulse: ${l.pulse}`
   ).join('\n');
 
-  const profileContext = `User Profile: ${profile.age} year old ${profile.gender}, Weight: ${profile.weight}kg. Medical history: ${profile.conditions || 'None'}`;
+  const profileContext = `User Profile:
+- Age: ${profile.age} years old
+- Gender: ${profile.gender}
+- Weight: ${profile.weight} lbs
+- Height: ${profile.height} (feet.inches format)
+- Medical conditions: ${profile.conditions || 'None'}`;
 
   try {
     const response = await ai.models.generateContent({
@@ -48,7 +61,14 @@ export const getHealthInsights = async (logs: BPLog[], profile: UserProfile): Pr
   }
 };
 
-export const scanBPDevice = async (base64Image: string): Promise<{systolic: number, diastolic: number, pulse: number} | null> => {
+export const scanBPDevice = async (base64Image: string, apiKey: string): Promise<{systolic: number, diastolic: number, pulse: number} | null> => {
+  if (!apiKey || !apiKey.trim()) {
+    console.error("No API key provided for OCR scanning");
+    return null;
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+  
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",

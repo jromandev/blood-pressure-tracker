@@ -35,9 +35,10 @@ export const BPProvider: React.FC<BPProviderProps> = ({ children }) => {
   const [profile, setProfile] = useState<UserProfile>({
     age: '30',
     gender: 'Other',
-    weight: '70',
-    height: '170',
-    conditions: ''
+    weight: '150',
+    height: '5.08',
+    conditions: '',
+    geminiApiKey: ''
   });
 
   // Sort utility for descending order (newest first)
@@ -49,11 +50,13 @@ export const BPProvider: React.FC<BPProviderProps> = ({ children }) => {
   useEffect(() => {
     const savedLogs = localStorage.getItem('bp_logs');
     const savedProfile = localStorage.getItem('user_profile');
+    const savedInsights = localStorage.getItem('bp_insights');
     if (savedLogs) {
       const parsed = JSON.parse(savedLogs);
       setLogs(sortLogsDescending(parsed));
     }
     if (savedProfile) setProfile(JSON.parse(savedProfile));
+    if (savedInsights) setInsights(JSON.parse(savedInsights));
   }, []);
 
   // Save logs to localStorage
@@ -65,6 +68,13 @@ export const BPProvider: React.FC<BPProviderProps> = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('user_profile', JSON.stringify(profile));
   }, [profile]);
+
+  // Save insights to localStorage
+  useEffect(() => {
+    if (insights) {
+      localStorage.setItem('bp_insights', JSON.stringify(insights));
+    }
+  }, [insights]);
 
   const addLog = (newLog: Omit<BPLog, 'id'>) => {
     const logWithId: BPLog = { ...newLog, id: crypto.randomUUID() };
@@ -95,6 +105,7 @@ export const BPProvider: React.FC<BPProviderProps> = ({ children }) => {
 
   const clearInsights = () => {
     setInsights(null);
+    localStorage.removeItem('bp_insights');
   };
 
   const value: BPContextType = {

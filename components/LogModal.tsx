@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { BPLog } from '../types';
 import { scanBPDevice } from '../services/geminiService';
 import { useToast } from './Toast';
+import { useBPContext } from '../context/BPContext';
 
 interface LogModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface LogModalProps {
 }
 
 const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
+  const { profile } = useBPContext();
   const [systolic, setSystolic] = useState<string>('120');
   const [diastolic, setDiastolic] = useState<string>('80');
   const [pulse, setPulse] = useState<string>('72');
@@ -94,14 +96,14 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
     const reader = new FileReader();
     reader.onload = async () => {
       const base64 = reader.result as string;
-      const result = await scanBPDevice(base64);
+      const result = await scanBPDevice(base64, profile.geminiApiKey);
       if (result) {
         setSystolic(result.systolic.toString());
         setDiastolic(result.diastolic.toString());
         setPulse(result.pulse.toString());
         showToast('Successfully scanned BP monitor!', 'success');
       } else {
-        showToast("Couldn't read values from image. Please enter manually.", 'warning');
+        showToast(!profile.geminiApiKey ? "API key required for OCR scanning. Add it in Profile." : "Couldn't read values from image. Please enter manually.", 'warning');
       }
       setIsScanning(false);
     };
@@ -258,7 +260,7 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
             type="button"
             onClick={handleSubmit}
             disabled={isSaving}
-            className="w-full bg-slate-900 text-white font-black py-5 rounded-[2rem] shadow-xl shadow-slate-200 active:scale-95 transition-all uppercase tracking-widest text-sm focus:ring-4 focus:ring-slate-300 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-slate-900 text-white font-black py-5 rounded-4xl shadow-xl shadow-slate-200 active:scale-95 transition-all uppercase tracking-widest text-sm focus:ring-4 focus:ring-slate-300 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Save blood pressure reading"
           >
             {isSaving ? 'Saving...' : 'Save Record'}

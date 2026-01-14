@@ -2,16 +2,31 @@ import React from 'react';
 import { useBPContext } from '../../context/BPContext';
 
 const AIAnalysis: React.FC = () => {
-  const { insights, isAnalysing, generateInsights } = useBPContext();
+  const { profile, insights, isAnalysing, generateInsights } = useBPContext();
+  const hasApiKey = Boolean(profile.geminiApiKey && profile.geminiApiKey.trim());
 
   return (
     <div className="space-y-8">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-black text-slate-900 tracking-tight">AI Insights</h2>
-        <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">Powered by Gemini AI</p>
+        <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">
+          {hasApiKey ? 'Powered by Gemini AI' : 'API Key Required'}
+        </p>
       </div>
 
-      <div className={`bg-gradient-to-br from-indigo-600 to-violet-800 p-8 rounded-[3rem] text-white shadow-2xl shadow-indigo-100 relative overflow-hidden`}>
+      {!hasApiKey && (
+        <div className="bg-orange-50 border-2 border-orange-200 rounded-3xl p-6 text-center space-y-3">
+          <div className="w-12 h-12 bg-orange-200 rounded-full flex items-center justify-center mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-orange-600" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <p className="text-sm font-black text-orange-800">Gemini API Key Required</p>
+          <p className="text-xs text-orange-600 font-medium">Please add your Gemini API key in the Profile tab to use AI analysis features.</p>
+        </div>
+      )}
+
+      <div className={`bg-linear-to-br from-indigo-600 to-violet-800 p-8 rounded-[3rem] text-white shadow-2xl shadow-indigo-100 relative overflow-hidden`}>
         {isAnalysing ? (
           <div className="space-y-6 animate-pulse py-8 text-center" role="status" aria-live="polite">
             <div className="w-16 h-16 bg-white/20 rounded-full mx-auto animate-bounce"></div>
@@ -42,7 +57,7 @@ const AIAnalysis: React.FC = () => {
           </div>
         ) : (
           <div className="py-12 text-center space-y-6">
-            <div className="w-20 h-20 bg-white/10 rounded-[2rem] flex items-center justify-center mx-auto backdrop-blur-md border border-white/10">
+            <div className="w-20 h-20 bg-white/10 rounded-4xl flex items-center justify-center mx-auto backdrop-blur-md border border-white/10">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
@@ -53,10 +68,15 @@ const AIAnalysis: React.FC = () => {
             </div>
             <button 
               onClick={generateInsights}
-              className="bg-white text-indigo-700 font-black px-8 py-4 rounded-full shadow-lg active:scale-95 transition-all uppercase text-xs tracking-widest"
-              aria-label="Generate AI health report"
+              disabled={!hasApiKey}
+              className={`font-black px-8 py-4 rounded-full shadow-lg transition-all uppercase text-xs tracking-widest ${
+                hasApiKey 
+                  ? 'bg-white text-indigo-700 active:scale-95' 
+                  : 'bg-white/30 text-white/50 cursor-not-allowed'
+              }`}
+              aria-label={hasApiKey ? "Generate AI health report" : "API key required to generate report"}
             >
-              Generate Report
+              {hasApiKey ? 'Generate Report' : 'API Key Required'}
             </button>
           </div>
         )}

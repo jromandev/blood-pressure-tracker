@@ -32,8 +32,11 @@ const ReadingDetailModal: React.FC<ReadingDetailModalProps> = ({ isOpen, onClose
 
   // Calculate position on chart (percentage)
   const getPosition = () => {
-    const systolicPercent = Math.min(((reading.systolic - 40) / 140) * 100, 100);
-    const diastolicPercent = Math.min(((reading.diastolic - 40) / 80) * 100, 100);
+    // Chart ranges: X-axis (diastolic) 40-120, Y-axis (systolic) 40-180
+    // For X: map 40-120 diastolic to 0-100%
+    const diastolicPercent = Math.min(Math.max(((reading.diastolic - 40) / 80) * 100, 0), 100);
+    // For Y: map 40-180 systolic to 100-0% (inverted because Y increases downward)
+    const systolicPercent = Math.min(Math.max(((reading.systolic - 40) / 140) * 100, 0), 100);
     return { x: diastolicPercent, y: 100 - systolicPercent };
   };
 
@@ -91,10 +94,10 @@ const ReadingDetailModal: React.FC<ReadingDetailModalProps> = ({ isOpen, onClose
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 text-center">Blood Pressure Zone</p>
             <div className="relative h-64 w-full border-l-4 border-b-4 border-slate-300">
               {/* Y-axis labels */}
-              <div className="absolute -left-12 top-0 text-xs font-bold text-slate-500">180+</div>
-              <div className="absolute -left-12 top-1/4 text-xs font-bold text-slate-500">140</div>
-              <div className="absolute -left-12 top-1/2 text-xs font-bold text-slate-500">120</div>
-              <div className="absolute -left-12 top-3/4 text-xs font-bold text-slate-500">90</div>
+              <div className="absolute -left-12 text-xs font-bold text-slate-500" style={{ top: '0%' }}>180+</div>
+              <div className="absolute -left-12 text-xs font-bold text-slate-500" style={{ top: '28.57%' }}>140</div>
+              <div className="absolute -left-12 text-xs font-bold text-slate-500" style={{ top: '42.86%' }}>120</div>
+              <div className="absolute -left-12 text-xs font-bold text-slate-500" style={{ top: '64.29%' }}>90</div>
               <div className="absolute -left-12 bottom-0 text-xs font-bold text-slate-500">40</div>
 
               {/* X-axis labels */}
@@ -105,10 +108,10 @@ const ReadingDetailModal: React.FC<ReadingDetailModalProps> = ({ isOpen, onClose
               <div className="absolute -bottom-8 right-0 text-xs font-bold text-slate-500">120+</div>
 
               {/* Zones */}
-              <div className="absolute bottom-0 left-0 w-1/4 h-3/4 bg-cyan-400 opacity-60"></div>
-              <div className="absolute bottom-0 left-1/4 w-1/4 h-1/2 bg-green-400 opacity-60"></div>
-              <div className="absolute bottom-0 left-1/2 w-1/4 h-1/4 bg-orange-400 opacity-60"></div>
-              <div className="absolute bottom-0 left-3/4 w-1/4 h-[15%] bg-orange-500 opacity-60"></div>
+              <div className="absolute bottom-0 left-0 w-1/4 bg-cyan-400 opacity-60" style={{ height: '35.71%' }}></div>
+              <div className="absolute bottom-0 left-1/4 w-1/4 bg-green-400 opacity-60" style={{ height: '57.14%' }}></div>
+              <div className="absolute bottom-0 left-1/2 w-1/4 bg-orange-400 opacity-60" style={{ height: '71.43%' }}></div>
+              <div className="absolute bottom-0 left-3/4 w-1/4 bg-orange-500 opacity-60" style={{ height: '85.71%' }}></div>
 
               {/* Current reading marker */}
               <div 

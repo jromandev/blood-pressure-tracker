@@ -13,6 +13,7 @@ interface LogModalProps {
 
 const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
   const { profile } = useBPContext();
+  const hasApiKey = Boolean(profile.geminiApiKey && profile.geminiApiKey.trim());
   const [systolic, setSystolic] = useState<string>('120');
   const [diastolic, setDiastolic] = useState<string>('80');
   const [pulse, setPulse] = useState<string>('72');
@@ -141,8 +142,14 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
         <div className="mb-6">
           <button 
             onClick={handleCameraClick}
-            disabled={isScanning}
-            className={`w-full py-4 px-6 rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/50 flex items-center justify-center gap-3 group transition-all hover:bg-indigo-50 hover:border-indigo-300 focus:ring-4 focus:ring-indigo-200 ${isScanning ? 'opacity-50 cursor-wait' : ''}`}
+            disabled={isScanning || !hasApiKey}
+            className={`w-full py-4 px-6 rounded-2xl border-2 border-dashed flex items-center justify-center gap-3 group transition-all focus:ring-4 ${
+              !hasApiKey 
+                ? 'border-slate-200 bg-slate-50 cursor-not-allowed opacity-50' 
+                : isScanning 
+                  ? 'border-indigo-200 bg-indigo-50/50 opacity-50 cursor-wait' 
+                  : 'border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50 hover:border-indigo-300 focus:ring-indigo-200'
+            }`}
             aria-label="Scan blood pressure monitor screen with camera"
           >
             {isScanning ? (
@@ -155,12 +162,18 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
               </span>
             ) : (
               <>
-                <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-active:scale-90 transition-transform">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-transform ${
+                  !hasApiKey 
+                    ? 'bg-slate-400 text-white shadow-slate-200' 
+                    : 'bg-indigo-600 text-white shadow-indigo-200 group-active:scale-90'
+                }`}>
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <span className="font-bold text-indigo-700">Scan BP Monitor Screen</span>
+                <span className={`font-bold ${!hasApiKey ? 'text-slate-400' : 'text-indigo-700'}`}>
+                  {!hasApiKey ? 'API Key Required to Scan' : 'Scan BP Monitor Screen'}
+                </span>
               </>
             )}
           </button>

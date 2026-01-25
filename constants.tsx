@@ -2,10 +2,21 @@
 import { BPCategory } from './types';
 
 export const getBPCategory = (systolic: number, diastolic: number): BPCategory => {
-  if (systolic >= 180 || diastolic >= 120) return BPCategory.CRISIS;
+  // Hypertensive Crisis: Higher than 180 AND/OR Higher than 120
+  if (systolic > 180 || diastolic > 120) return BPCategory.CRISIS;
+  
+  // Hypertension Stage 2: 140 or higher OR 90 or higher
   if (systolic >= 140 || diastolic >= 90) return BPCategory.STAGE2;
-  if (systolic >= 130 || diastolic >= 80) return BPCategory.STAGE1;
-  if (systolic >= 120 && diastolic < 80) return BPCategory.ELEVATED;
+  
+  // Hypertension Stage 1: 130-139 OR 80-89
+  if ((systolic >= 130 && systolic <= 139) || (diastolic >= 80 && diastolic <= 89)) {
+    return BPCategory.STAGE1;
+  }
+  
+  // Elevated: 120-129 AND Less than 80
+  if (systolic >= 120 && systolic <= 129 && diastolic < 80) return BPCategory.ELEVATED;
+  
+  // Normal: Less than 120 AND Less than 80
   return BPCategory.NORMAL;
 };
 

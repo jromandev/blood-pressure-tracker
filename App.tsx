@@ -27,8 +27,8 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleExportPDF = () => {
-    exportLast7DaysReadingsToPDF(logs);
+  const handleExportPDF = async () => {
+    await exportLast7DaysReadingsToPDF(logs);
   };
 
   const renderTab = () => {

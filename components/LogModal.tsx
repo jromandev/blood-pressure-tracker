@@ -14,9 +14,9 @@ interface LogModalProps {
 const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
   const { profile } = useBPContext();
   const hasApiKey = Boolean(profile.geminiApiKey && profile.geminiApiKey.trim());
-  const [systolic, setSystolic] = useState<string>('120');
-  const [diastolic, setDiastolic] = useState<string>('80');
-  const [pulse, setPulse] = useState<string>('72');
+  const [systolic, setSystolic] = useState<string>('115');
+  const [diastolic, setDiastolic] = useState<string>('75');
+  const [pulse, setPulse] = useState<string>('70');
   const now = new Date();
   const [date, setDate] = useState<string>(now.toISOString().slice(0, 10));
   const [time, setTime] = useState<string>(now.toTimeString().slice(0, 5));
@@ -36,9 +36,9 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
   if (!isOpen) return null;
 
   const resetForm = () => {
-    setSystolic('120');
-    setDiastolic('80');
-    setPulse('72');
+    setSystolic('115');
+    setDiastolic('75');
+    setPulse('70');
     const resetNow = new Date();
     setDate(resetNow.toISOString().slice(0, 10));
     setTime(resetNow.toTimeString().slice(0, 5));
@@ -198,8 +198,10 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
                   required
                   value={systolic}
                   onChange={(e) => setSystolic(e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  onBlur={(e) => { if (!e.target.value) setSystolic('115'); }}
                   className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-xl font-black text-slate-800 focus:ring-4 focus:ring-indigo-100 focus:bg-white outline-none transition-all"
-                  placeholder="120"
+                  placeholder="115"
                 />
               </div>
             </div>
@@ -211,8 +213,10 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
                   required
                   value={diastolic}
                   onChange={(e) => setDiastolic(e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  onBlur={(e) => { if (!e.target.value) setDiastolic('75'); }}
                   className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-xl font-black text-slate-800 focus:ring-4 focus:ring-indigo-100 focus:bg-white outline-none transition-all"
-                  placeholder="80"
+                  placeholder="75"
                 />
               </div>
             </div>
@@ -227,8 +231,10 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
                 required
                 value={pulse}
                 onChange={(e) => setPulse(e.target.value)}
+                onFocus={(e) => e.target.select()}
+                onBlur={(e) => { if (!e.target.value) setPulse('70'); }}
                 className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-lg font-bold text-slate-800 focus:ring-4 focus:ring-indigo-100 focus:bg-white outline-none transition-all"
-                placeholder="72"
+                placeholder="70"
                 aria-label="Enter pulse rate"
               />
             </div>

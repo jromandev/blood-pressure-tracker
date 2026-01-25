@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, Legend, AreaChart, Area 
@@ -11,6 +11,7 @@ interface BPChartProps {
 }
 
 const BPChart: React.FC<BPChartProps> = ({ logs }) => {
+  const [tooltipActive, setTooltipActive] = useState(false);
   // Group logs by date and average values for each day
   const groupedByDate = logs.reduce((acc, log) => {
     const dateKey = new Date(log.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -42,7 +43,15 @@ const BPChart: React.FC<BPChartProps> = ({ logs }) => {
   }
 
   return (
-    <div className="w-full h-72">
+    <div 
+      className="w-full h-72"
+      onTouchStart={() => setTooltipActive(true)}
+      onTouchEnd={() => setTooltipActive(false)}
+      onMouseDown={() => setTooltipActive(true)}
+      onMouseUp={() => setTooltipActive(false)}
+      onMouseLeave={() => setTooltipActive(false)}
+      style={{ touchAction: 'none' }}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <defs>
@@ -73,6 +82,7 @@ const BPChart: React.FC<BPChartProps> = ({ logs }) => {
             tick={{fontSize: 10, fill: '#94a3b8'}}
           />
           <Tooltip 
+            active={tooltipActive}
             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
           />
           <Legend 

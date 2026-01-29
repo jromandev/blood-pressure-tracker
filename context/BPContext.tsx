@@ -80,8 +80,6 @@ export const BPProvider: React.FC<BPProviderProps> = ({ children }) => {
     const logWithId: BPLog = { ...newLog, id: crypto.randomUUID() };
     const updatedLogs = sortLogsDescending([...logs, logWithId]);
     setLogs(updatedLogs);
-    // Clear insights when new data is added
-    setInsights(null);
   };
 
   const deleteLog = (id: string) => {
@@ -97,7 +95,11 @@ export const BPProvider: React.FC<BPProviderProps> = ({ children }) => {
     setIsAnalysing(true);
     try {
       const result = await getHealthInsights(logs, profile);
-      setInsights(result);
+      const insightWithTimestamp = {
+        ...result,
+        generatedAt: new Date().toISOString()
+      };
+      setInsights(insightWithTimestamp);
     } finally {
       setIsAnalysing(false);
     }

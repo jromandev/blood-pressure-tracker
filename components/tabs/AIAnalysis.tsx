@@ -5,13 +5,44 @@ const AIAnalysis: React.FC = () => {
   const { profile, insights, isAnalysing, generateInsights } = useBPContext();
   const hasApiKey = Boolean(profile.geminiApiKey && profile.geminiApiKey.trim());
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <div className="space-y-8">
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">AI Insights</h2>
+        <div className="flex items-center justify-center gap-3">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">AI Insights</h2>
+          {insights && hasApiKey && (
+            <button
+              onClick={generateInsights}
+              disabled={isAnalysing}
+              className="p-2.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-2xl transition-all active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Refresh AI analysis"
+              title="Refresh analysis"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isAnalysing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+          )}
+        </div>
         <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">
           {hasApiKey ? 'Powered by Gemini AI' : 'API Key Required'}
         </p>
+        {insights && insights.generatedAt && (
+          <p className="text-slate-400 text-xs font-medium">
+            Last updated: {formatDate(insights.generatedAt)}
+          </p>
+        )}
       </div>
 
       {!hasApiKey && (

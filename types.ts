@@ -29,4 +29,5 @@ export interface InsightData {
   summary: string;
   recommendations: string[];
   trend: 'improving' | 'declining' | 'stable' | 'insufficient';
+  generatedAt: string;
 }

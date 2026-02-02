@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { BPLog } from '../types';
+import { BPLog, UserProfile } from '../types';
 import { getBPCategory } from '../constants';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
@@ -263,4 +263,205 @@ export const exportLast7DaysReadingsToPDF = async (logs: BPLog[]) => {
     // Web browser - download directly
     doc.save(filename);
   }
+};
+
+export const exportAHABloodPressureLog = async (logs: BPLog[], profile: UserProfile) => {
+  console.log('🔵 exportAHABloodPressureLog called with', logs.length, 'logs');
+  
+  // Get last 28 readings in ascending order (oldest first) - max 28 entries for two tables
+  const sortedLogs = [...logs].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  const last28Days = sortedLogs.slice(-28);
+  
+  console.log('🔵 Processing', last28Days.length, 'readings');
+
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  // Title - My Blood Pressure Log
+  doc.setFontSize(24);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(0, 0, 0);
+  doc.text('My Blood Pressure Log', pageWidth / 2, 20, { align: 'center' });
+  
+  // Patient Information - Top Section
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Name: ${profile.fullName || '________________________________________'}`, 15, 32);
+  doc.text(`My Blood Pressure Goal: ${profile.bpGoal || '__________'} mm Hg`, 130, 32);
+  
+  // Instructions Section
+  let yPos = 42;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Instructions:', 15, yPos);
+  
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  yPos += 5;
+  
+  const instructionsLeft = [
+    'Check your blood pressure for 3 days (minimum) to 7 days (preferred) before your appointment with your health care professional. You should take two readings, one minute apart twice a day. Two readings in the morning before taking your medication and eating, and two readings at bedtime before sleep.',
+    'Before you measure no smoking, caffeinated beverages, alcohol or exercise 30 minutes prior, use a validated device with the correct cuff size, and empty your bladder.'
+  ];
+  
+  const instructionsRight = [
+    'For accurate results, sit upright with back supported, feet on floor, and legs uncrossed. Sit quietly for more than 5 minutes and do not talk.',
+    'When taking your blood pressure, rest your arm on a flat surface so the blood pressure cuff is at heart level. Wrap the cuff on your bare skin above the bend of the elbow, not over clothing.',
+    'Record your blood pressure on this sheet and show it to your health care professional at every visit.'
+  ];
+  
+  // Left instructions
+  instructionsLeft.forEach((instruction) => {
+    const bullet = '• ';
+    const lines = doc.splitTextToSize(bullet + instruction, 85);
+    doc.text(lines, 15, yPos);
+    yPos += lines.length * 3.2;
+  });
+  
+  // Right instructions
+  let rightYPos = 47;
+  instructionsRight.forEach((instruction) => {
+    const bullet = '• ';
+    const lines = doc.splitTextToSize(bullet + instruction, 85);
+    doc.text(lines, 110, rightYPos);
+    rightYPos += lines.length * 3.2;
+  });
+  
+  // Tables start position (below instructions)
+  const tablesStartY = 78;
+  const tableWidth = 88;
+  const rowHeight = 12;
+  
+  // LEFT TABLE
+  const leftTableX = 15;
+  
+  // Left Table Header
+  doc.setFillColor(220, 53, 69);
+  doc.rect(leftTableX, tablesStartY, tableWidth, 8, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('DATE', leftTableX + 8, tablesStartY + 5.5);
+  doc.text('AM', leftTableX + 40, tablesStartY + 5.5);
+  doc.text('PM', leftTableX + 65, tablesStartY + 5.5);
+  
+  // Left Table Rows (first 14 entries)
+  doc.setTextColor(0, 0, 0);
+  doc.setDrawColor(180, 180, 180);
+  const leftTableData = last28Days.slice(0, 14);
+  
+  for (let i = 0; i < 14; i++) {
+    const rowY = tablesStartY + 8 + (i * rowHeight);
+    
+    // Draw row borders
+    doc.rect(leftTableX, rowY, tableWidth, rowHeight);
+    doc.line(leftTableX + 30, rowY, leftTableX + 30, rowY + rowHeight);
+    doc.line(leftTableX + 59, rowY, leftTableX + 59, rowY + rowHeight);
+    
+    // Fill data if available
+    if (leftTableData[i]) {
+      const log = leftTableData[i];
+      const date = new Date(log.timestamp);
+      const dateStr = date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+      const hour = date.getHours();
+      const isAM = hour < 12;
+      const reading = `${log.systolic} - ${log.diastolic} - ${log.pulse}`;
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.text(dateStr, leftTableX + 5, rowY + 7.5);
+      
+      if (isAM) {
+        doc.text(reading, leftTableX + 34, rowY + 7.5);
+      } else {
+        doc.text(reading, leftTableX + 63, rowY + 7.5);
+      }
+    }
+  }
+  
+  // RIGHT TABLE
+  const rightTableX = 107;
+  
+  // Right Table Header
+  doc.setFillColor(220, 53, 69);
+  doc.rect(rightTableX, tablesStartY, tableWidth, 8, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('DATE', rightTableX + 8, tablesStartY + 5.5);
+  doc.text('AM', rightTableX + 40, tablesStartY + 5.5);
+  doc.text('PM', rightTableX + 65, tablesStartY + 5.5);
+  
+  // Right Table Rows (entries 15-28)
+  doc.setTextColor(0, 0, 0);
+  const rightTableData = last28Days.slice(14, 28);
+  
+  for (let i = 0; i < 14; i++) {
+    const rowY = tablesStartY + 8 + (i * rowHeight);
+    
+    // Draw row borders
+    doc.rect(rightTableX, rowY, tableWidth, rowHeight);
+    doc.line(rightTableX + 30, rowY, rightTableX + 30, rowY + rowHeight);
+    doc.line(rightTableX + 59, rowY, rightTableX + 59, rowY + rowHeight);
+    
+    // Fill data if available
+    if (rightTableData[i]) {
+      const log = rightTableData[i];
+      const date = new Date(log.timestamp);
+      const dateStr = date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+      const hour = date.getHours();
+      const isAM = hour < 12;
+      const reading = `${log.systolic} - ${log.diastolic} - ${log.pulse}`;
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.text(dateStr, rightTableX + 5, rowY + 7.5);
+      
+      if (isAM) {
+        doc.text(reading, rightTableX + 34, rowY + 7.5);
+      } else {
+        doc.text(reading, rightTableX + 63, rowY + 7.5);
+      }
+    }
+  }
+  
+  // Save or Share the PDF
+  const filename = `AHA_BP_Log_${new Date().toISOString().split('T')[0]}.pdf`;
+  
+  console.log('🔵 Saving PDF:', filename);
+  console.log('🔵 Native platform:', Capacitor.isNativePlatform());
+  
+  // Check if running on native platform (iOS/Android)
+  if (Capacitor.isNativePlatform()) {
+    try {
+      console.log('🔵 Attempting to share PDF on native platform');
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      const savedFile = await Filesystem.writeFile({
+        path: filename,
+        data: pdfBase64,
+        directory: Directory.Cache,
+      });
+      
+      console.log('🔵 File saved to:', savedFile.uri);
+      
+      await Share.share({
+        title: 'AHA Blood Pressure Log',
+        text: 'My Blood Pressure Log',
+        url: savedFile.uri,
+        dialogTitle: 'Share your Blood Pressure Log'
+      });
+      
+      console.log('✅ PDF shared successfully');
+    } catch (error) {
+      console.error('❌ Error sharing PDF:', error);
+      doc.save(filename);
+    }
+  } else {
+    console.log('🔵 Downloading PDF on web platform');
+    doc.save(filename);
+  }
+  
+  console.log('✅ exportAHABloodPressureLog completed');
 };

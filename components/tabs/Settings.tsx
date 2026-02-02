@@ -22,6 +22,26 @@ const Settings: React.FC = () => {
       </div>
 
       <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100 space-y-8 relative z-10">
+        <div className="space-y-1.5">
+          <label
+            htmlFor="fullName"
+            className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1"
+          >
+            Full Name
+          </label>
+          <input
+            id="fullName"
+            type="text"
+            value={profile.fullName}
+            onChange={(e) =>
+              updateProfile({ ...profile, fullName: e.target.value })
+            }
+            placeholder="Enter your full name"
+            className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 font-bold text-slate-800 outline-none focus:ring-4 focus:ring-slate-100 transition-all"
+            aria-label="Enter your full name"
+          />
+        </div>
+
         <div className="grid grid-cols-2 gap-6">
           <div className="space-y-1.5">
             <label
@@ -114,20 +134,21 @@ const Settings: React.FC = () => {
 
         <div className="space-y-1.5">
           <label
-            htmlFor="conditions"
+            htmlFor="bpGoal"
             className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1"
           >
-            Medical Conditions
+            Blood Pressure Goal (mmHg)
           </label>
-          <textarea
-            id="conditions"
-            value={profile.conditions}
+          <input
+            id="bpGoal"
+            type="text"
+            value={profile.bpGoal}
             onChange={(e) =>
-              updateProfile({ ...profile, conditions: e.target.value })
+              updateProfile({ ...profile, bpGoal: e.target.value })
             }
-            placeholder="e.g. Diabetes, Type 2"
-            className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 font-medium text-slate-600 outline-none focus:ring-4 focus:ring-slate-100 transition-all h-32"
-            aria-label="Enter any medical conditions"
+            placeholder="e.g. 120/80"
+            className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 font-bold text-slate-800 outline-none focus:ring-4 focus:ring-slate-100 transition-all"
+            aria-label="Enter your blood pressure goal"
           />
         </div>
 

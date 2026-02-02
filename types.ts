@@ -8,11 +8,12 @@ export enum BPCategory {
 }
 
 export interface UserProfile {
+  fullName: string;
   age: string;
   gender: string;
   weight: string;
   height: string;
-  conditions: string;
+  bpGoal: string;
   geminiApiKey: string;
 }
 

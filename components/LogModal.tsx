@@ -58,7 +58,9 @@ const LogModal: React.FC<LogModalProps> = ({ isOpen, onClose, onSave }) => {
     setIsSaving(true);
     
     try {
-      const timestamp = new Date(`${date}T${time}`).toISOString();
+      // Create timestamp preserving local timezone
+      const localDate = new Date(`${date}T${time}`);
+      const timestamp = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000).toISOString();
       console.log('✅ Timestamp created:', timestamp);
       
       onSave({

@@ -7,12 +7,12 @@ import Dashboard from './components/tabs/Dashboard';
 import AIAnalysis from './components/tabs/AIAnalysis';
 import Settings from './components/tabs/Settings';
 import LogModal from './components/LogModal';
-import { exportLast7DaysReadingsToPDF } from './services/pdfExportService';
+import { exportLast7DaysReadingsToPDF, exportAHABloodPressureLog } from './services/pdfExportService';
 
 const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'ai' | 'settings'>('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { addLog, logs } = useBPContext();
+  const { addLog, logs, profile } = useBPContext();
 
   const handleAddLog = (newLog: Omit<BPLog, 'id'>) => {
     console.log('🟢 handleAddLog called in App.tsx', newLog);
@@ -29,6 +29,10 @@ const AppContent: React.FC = () => {
 
   const handleExportPDF = async () => {
     await exportLast7DaysReadingsToPDF(logs);
+  };
+
+  const handleExportAHALog = async () => {
+    await exportAHABloodPressureLog(logs, profile);
   };
 
   const renderTab = () => {
@@ -55,6 +59,16 @@ const AppContent: React.FC = () => {
           </div>
           {activeTab === 'dashboard' && (
             <div className="flex gap-3">
+              <button 
+                onClick={handleExportAHALog}
+                className="w-12 h-12 bg-red-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-red-200 active:scale-90 transition-transform"
+                aria-label="Export AHA Blood Pressure Log"
+                title="Export AHA Log"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </button>
               <button 
                 onClick={handleExportPDF}
                 className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 active:scale-90 transition-transform"

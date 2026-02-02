@@ -33,11 +33,12 @@ export const BPProvider: React.FC<BPProviderProps> = ({ children }) => {
   const [insights, setInsights] = useState<InsightData | null>(null);
   const [isAnalysing, setIsAnalysing] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({
+    fullName: '',
     age: '30',
     gender: 'Other',
     weight: '150',
     height: '5.08',
-    conditions: '',
+    bpGoal: '120/80',
     geminiApiKey: ''
   });
 
